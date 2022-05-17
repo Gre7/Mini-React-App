@@ -1,14 +1,56 @@
-import React from "react";
-import PropTypes from "prop-types";
-import "../Checkboxes/Checkboxes.scss";
+import React, { useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 
-function Checkboxes({
-  enabledChekedValue,
-  changeEnabledChecked,
-  refreshChekedValue,
+import '../Checkboxes/Checkboxes.scss';
+
+const Checkboxes = ({
+  getImage,
+  imageUrl,
   disabledValue,
-  changeRefreshChecked
-}) {
+  changeImageUrl,
+  setDisabledValue,
+}) => {
+  const [enabledCheckedValue, setEnabledChecked] = useState(true);
+
+  const [refreshCheckedValue, setRefreshChecked] = useState(false);
+
+  const [intervalChangeImg, setIntervalChangeImg] = useState(null);
+
+  const setIntChangeImg = useCallback(() => {
+    setIntervalChangeImg(setInterval(getImage, 3000));
+  }, [getImage]);
+
+  const stopIntChangeImg = useCallback(() => {
+    setIntervalChangeImg(clearInterval(intervalChangeImg));
+  }, [intervalChangeImg]);
+
+  const changeEnabledChecked = useCallback(
+    ({ target: { checked } }) => {
+      if (!checked) {
+        setDisabledValue(true);
+        setRefreshChecked(false);
+        stopIntChangeImg();
+      } else {
+        setDisabledValue(false);
+      }
+      setEnabledChecked(checked);
+    },
+    [setDisabledValue, stopIntChangeImg]
+  );
+
+  const changeRefreshChecked = useCallback(
+    ({ target: { checked } }) => {
+      setRefreshChecked(checked);
+      if (checked) {
+        setIntChangeImg();
+      } else {
+        stopIntChangeImg();
+        changeImageUrl(imageUrl);
+      }
+    },
+    [changeImageUrl, imageUrl, setIntChangeImg, stopIntChangeImg]
+  );
+
   return (
     <div className="wrapper">
       <div>
@@ -17,7 +59,7 @@ function Checkboxes({
           type="checkbox"
           className="enabled"
           name="enabled"
-          checked={enabledChekedValue}
+          checked={enabledCheckedValue}
           onChange={changeEnabledChecked}
         />
         <label htmlFor="enabled">Enabled</label>
@@ -28,7 +70,7 @@ function Checkboxes({
           type="checkbox"
           className="refresh"
           name="refresh"
-          checked={refreshChekedValue}
+          checked={refreshCheckedValue}
           disabled={disabledValue}
           onChange={changeRefreshChecked}
         />
@@ -36,14 +78,14 @@ function Checkboxes({
       </div>
     </div>
   );
-}
+};
 
 Checkboxes.propTypes = {
-  enabledChekedValue: PropTypes.bool.isRequired,
-  changeEnabledChecked: PropTypes.func.isRequired,
-  refreshChekedValue: PropTypes.bool.isRequired,
+  getImage: PropTypes.func.isRequired,
+  imageUrl: PropTypes.string.isRequired,
   disabledValue: PropTypes.bool.isRequired,
-  changeRefreshChecked: PropTypes.func.isRequired
+  changeImageUrl: PropTypes.func.isRequired,
+  setDisabledValue: PropTypes.func.isRequired,
 };
 
 export default Checkboxes;
